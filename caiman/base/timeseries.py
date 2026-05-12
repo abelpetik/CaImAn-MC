@@ -12,15 +12,19 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from pynwb import NWBHDF5IO, NWBFile
-from pynwb.ophys import TwoPhotonSeries, OpticalChannel
-from pynwb.device import Device
 import pickle as cpk
 from scipy.io import savemat
 import tifffile
 import warnings
 
 import caiman.paths
+
+try:
+    from pynwb import NWBHDF5IO, NWBFile
+    from pynwb.ophys import TwoPhotonSeries, OpticalChannel
+    from pynwb.device import Device
+except ImportError:  # pragma: no cover - optional dependency for NWB export/import
+    NWBHDF5IO = NWBFile = TwoPhotonSeries = OpticalChannel = Device = None
 
 try:
     cv2.setNumThreads(0)

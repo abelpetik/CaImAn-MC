@@ -9,33 +9,24 @@ Contains the movie class.
 import cv2
 from functools import partial
 import h5py
-from IPython.display import display, Image
-import ipywidgets as widgets
 import logging
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pathlib
-import pims
 import scipy
 import skimage
-import sklearn
 import sys
 import threading
 import tifffile
 from tqdm import tqdm
 from typing import Any, Optional, Union
 import warnings
-import zarr
 from zipfile import ZipFile
 
 import caiman.base.timeseries
-import caiman.base.traces
 import caiman.mmapping
-import caiman.summary_images
-import caiman.utils.sbx_utils
-import caiman.utils.visualization
 
 try:
     cv2.setNumThreads(0)
@@ -545,7 +536,9 @@ class movie(caiman.base.timeseries.timeseries):
         frame_samples = np.reshape(self, (num_frames, frame_size)).T
 
         # run IPCA to approximate the SVD
-        ipca_f = sklearn.decomposition.IncrementalPCA(n_components=components, batch_size=batch)
+        from sklearn.decomposition import IncrementalPCA
+
+        ipca_f = IncrementalPCA(n_components=components, batch_size=batch)
         ipca_f.fit(frame_samples)
 
         # construct the reduced version of the movie vectors using only the
@@ -607,7 +600,9 @@ class movie(caiman.base.timeseries.timeseries):
 
         eigenstuff = np.concatenate([n_eigenframes, n_eigenseries])
 
-        ica = sklearn.decomposition.FastICA(n_components=componentsICA, fun=ICAfun, **kwargs)
+        from sklearn.decomposition import FastICA
+
+        ica = FastICA(n_components=componentsICA, fun=ICAfun, **kwargs)
         joint_ics = ica.fit_transform(eigenstuff)
 
         # extract the independent frames
@@ -663,23 +658,25 @@ class movie(caiman.base.timeseries.timeseries):
         """
         logger = logging.getLogger("caiman")
 
+        from caiman.summary_images import local_correlations
+
         T = self.shape[0]
         Cn = np.zeros(self.shape[1:])
         if T <= 3000:
-            Cn = caiman.summary_images.local_correlations(np.array(self),
-                                       eight_neighbours=eight_neighbours,
-                                       swap_dim=swap_dim,
-                                       order_mean=order_mean)
+            Cn = local_correlations(np.array(self),
+                                    eight_neighbours=eight_neighbours,
+                                    swap_dim=swap_dim,
+                                    order_mean=order_mean)
         else:
 
             n_chunks = T // frames_per_chunk
             for jj, mv in enumerate(range(n_chunks - 1)):
                 logger.debug('number of chunks:{jj} frames: ' +
                               str([mv * frames_per_chunk, (mv + 1) * frames_per_chunk]))
-                rho = caiman.summary_images.local_correlations(np.array(self[mv * frames_per_chunk:(mv + 1) * frames_per_chunk]),
-                                            eight_neighbours=eight_neighbours,
-                                            swap_dim=swap_dim,
-                                            order_mean=order_mean)
+                rho = local_correlations(np.array(self[mv * frames_per_chunk:(mv + 1) * frames_per_chunk]),
+                                         eight_neighbours=eight_neighbours,
+                                         swap_dim=swap_dim,
+                                         order_mean=order_mean)
                 Cn = np.maximum(Cn, rho)
                 if do_plot:
                     plt.imshow(Cn, cmap='gray')
@@ -687,10 +684,10 @@ class movie(caiman.base.timeseries.timeseries):
 
             logger.debug(f'number of chunks: {n_chunks - 1} frames: ' +
                           str([(n_chunks - 1) * frames_per_chunk, T]))
-            rho = caiman.summary_images.local_correlations(np.array(self[(n_chunks - 1) * frames_per_chunk:]),
-                                        eight_neighbours=eight_neighbours,
-                                        swap_dim=swap_dim,
-                                        order_mean=order_mean)
+            rho = local_correlations(np.array(self[(n_chunks - 1) * frames_per_chunk:]),
+                                     eight_neighbours=eight_neighbours,
+                                     swap_dim=swap_dim,
+                                     order_mean=order_mean)
             Cn = np.maximum(Cn, rho)
             if do_plot:
                 plt.imshow(Cn, cmap='gray')
@@ -698,7 +695,7 @@ class movie(caiman.base.timeseries.timeseries):
 
         return Cn
 
-    def extract_traces_from_masks(self, masks: np.ndarray) -> caiman.base.traces.trace:
+    def extract_traces_from_masks(self, masks: np.ndarray) -> Any:
         """
         Args:
             masks: array, 3D with each 2D slice bein a mask (integer or fractional)
@@ -717,7 +714,9 @@ class movie(caiman.base.timeseries.timeseries):
 
         pixelsA = np.sum(A, axis=1)
         A = A / pixelsA[:, None]       # obtain average over ROI
-        traces = caiman.base.traces.trace(np.dot(A, np.transpose(Y)).T, **self.__dict__)
+        from caiman.base.traces import trace
+
+        traces = trace(np.dot(A, np.transpose(Y)).T, **self.__dict__)
         return traces
 
     def resize(self, fx=1, fy=1, fz=1, interpolation=cv2.INTER_AREA):
@@ -1166,6 +1165,8 @@ def load(file_name: Union[str, list[str]],
                 ###############################
                 # Pims codepath
                 ###############################
+                import pims
+
                 pims_movie = pims.PyAVReaderTimed(file_name) #   # PyAVReaderIndexed()
                 length = len(pims_movie)
                 height, width = pims_movie.frame_shape[0:2]    # shape is (h, w, channels)
@@ -1234,6 +1235,8 @@ def load(file_name: Union[str, list[str]],
 
         elif extension in ('.hdf5', '.h5', '.mat', '.nwb', '.n5', '.zarr'):
             if extension in ('.n5', '.zarr'): # Thankfully, the zarr library lines up closely with h5py past the initial open
+                import zarr
+
                 f = zarr.open(file_name, "r")
             else:
                 try:
@@ -1290,8 +1293,10 @@ def load(file_name: Union[str, list[str]],
 
         elif extension == '.sbx':
             logger.debug('sbx')
-            meta_data = caiman.utils.sbx_utils.sbx_meta_data(basename)
-            input_arr = caiman.utils.sbx_utils.sbxread(basename, subindices)
+            from caiman.utils import sbx_utils
+
+            meta_data = sbx_utils.sbx_meta_data(basename)
+            input_arr = sbx_utils.sbxread(basename, subindices)
             return movie(input_arr, fr=fr,
                          file_name=os.path.split(file_name)[-1],
                          meta_data=meta_data).astype(outtype)
@@ -1652,6 +1657,8 @@ def load_iter(file_name: Union[str, list[str]], subindices=None, var_name_hdf5: 
                                 cap.release()
                                 return
                 else: # Try pims fallback
+                    import pims
+
                     pims_movie = pims.Video(file_name) # This is a lazy operation
                     length = len(pims_movie) # Hopefully this won't de-lazify it
                     height, width = pims_movie.frame_shape[0:2] # shape is (h, w, channels)
@@ -1674,6 +1681,8 @@ def load_iter(file_name: Union[str, list[str]], subindices=None, var_name_hdf5: 
                 
             elif extension in ('.hdf5', '.h5', '.nwb', '.mat', '.n5', '.zarr'):
                 if extension in ('.n5', '.zarr'): # Thankfully, the zarr library lines up closely with h5py past the initial open
+                    import zarr
+
                     f = zarr.open(file_name, "r")
                 else:
                     try:
@@ -1751,6 +1760,8 @@ def get_file_size(file_name, var_name_hdf5:str='mov') -> tuple[tuple, Union[int,
                     T, dims = siz[0], siz[1:]
             elif extension in ('.avi', '.mkv'):
                 if 'CAIMAN_LOAD_AVI_FORCE_FALLBACK' in os.environ:
+                        import pims
+
                         pims_movie = pims.PyAVReaderTimed(file_name) # duplicated code, but no cleaner way
                         T = len(pims_movie)
                         dims = pims_movie.frame_shape[0:2]
@@ -1760,6 +1771,8 @@ def get_file_size(file_name, var_name_hdf5:str='mov') -> tuple[tuple, Union[int,
                     T = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
                     cap.release()
                     if dims[0] <= 0 or dims[1] <= 0 or T <= 0: # if no opencv, do pims instead. See also load()
+                        import pims
+
                         pims_movie = pims.PyAVReaderTimed(file_name)
                         T = len(pims_movie)
                         dims[0], dims[1] = pims_movie.frame_shape[0:2]
@@ -1770,6 +1783,8 @@ def get_file_size(file_name, var_name_hdf5:str='mov') -> tuple[tuple, Union[int,
             elif extension in ('.h5', '.hdf5', '.mat', '.nwb', '.n5', '.zarr'):
                 # FIXME this doesn't match the logic in load()
                 if extension in ('.n5', '.zarr'): # Thankfully, the zarr library lines up closely with h5py past the initial open
+                    import zarr
+
                     f = zarr.open(file_name, "r")
                 else:
                     try:
@@ -1806,7 +1821,9 @@ def get_file_size(file_name, var_name_hdf5:str='mov') -> tuple[tuple, Union[int,
                 T = shape[0]
                 dims = shape[1:]
             elif extension in ('.sbx'):
-                shape = caiman.utils.sbx_utils.sbx_shape(file_name[:-4])
+                from caiman.utils import sbx_utils
+
+                shape = sbx_utils.sbx_shape(file_name[:-4])
                 T = shape[-1]
                 dims = (shape[2], shape[1])                
             else:
@@ -2000,9 +2017,14 @@ def play_movie(movie,
         anim = matplotlib.animation.FuncAnimation(fig, animate, frames=frames, interval=1, blit=True)
 
         # call our new function to display the animation
-        return caiman.utils.visualization.display_animation(anim, fps=fr)
+        from caiman.utils.visualization import display_animation
+
+        return display_animation(anim, fps=fr)
 
     elif backend == 'embed_opencv':
+        from IPython.display import Image, display
+        import ipywidgets as widgets
+
         stopButton = widgets.ToggleButton(
             value=False,
             description='Stop',

@@ -15,7 +15,6 @@ from typing import Any, Optional
 
 import caiman
 import caiman.base.movies
-from caiman.source_extraction.cnmf.pre_processing import get_noise_fft
 
 def max_correlation_image(Y, bin_size: int = 1000, eight_neighbours: bool = True, swap_dim: bool = True) -> np.ndarray:
     """Computes the max-correlation image for the input dataset Y with bin_size
@@ -343,6 +342,8 @@ def correlation_pnr(Y, gSig=None, center_psf: bool = True, swap_dim: bool = True
         else:
             for idx, img in enumerate(data_filtered):
                 data_filtered[idx,] = cv2.GaussianBlur(img, ksize=ksize, sigmaX=gSig[0], sigmaY=gSig[1], borderType=1)
+
+    from caiman.source_extraction.cnmf.pre_processing import get_noise_fft
 
     # compute peak-to-noise ratio
     data_filtered -= data_filtered.mean(axis=0)
