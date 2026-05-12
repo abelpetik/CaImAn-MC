@@ -1,5 +1,3 @@
-<a href="https://colab.research.google.com/drive/1vkp-uPV8tKavmX12bcN2L-jYH8_MgmHL?usp=sharing"><img src="https://img.shields.io/badge/-Colab%20Demo-blue" /></a>
-
 
 Caiman
 ======
@@ -75,66 +73,6 @@ If you upgrade caiman, you should not generally need to clear out and recreate y
 If you want to get the latest changes, either remove or rename your caiman\_data directory and create a new one with `caimanmanager install` as above. Afterwards you can move data and/or modified notebooks back in (still possibly losing improvements we've made to notebooks along the way).
 
 If you upgrade caiman between major versions (e.g. 1.0.15 to 1.1.0), APIs are more likely to have changed and you may need to make more substantial changes to integrate your changes into the new versions. The process is the same.
-
-# Demo notebooks
-Caiman provides demo notebooks to showcase each of our main features, from motion correction to online CNMF. We recommend starting with the CNMF notebook (`demo_pipeline.ipynb`), which contains more explanation and details than the other notebooks: it covers many concepts that will be used without explanation in the other notebooks. The CNMFE notebook (`demo_pipeline_cnmfE.ipynb`), is also more detailed. Once you've gotten things set up and worked through those "anchor" notebooks, the best way to get started is to work through the demo notebook that most closely matches your use case; you should be able to adapt it for your particular needs.
-
-The main use cases and notebooks are listed in the following table:
-
-| Use case | Demo notebook | Paper |
-|:-------- |:------------- | --------------------- |
-| CNMF for 2p or low-noise 1p data | [demo_pipeline.ipynb](./demos/notebooks/demo_pipeline.ipynb) |  [Pnevmatikakis et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26774160/) | 
-| CNMFE for 1p data  | [demo_pipeline_cnmfE.ipynb](./demos/notebooks/demo_pipeline_cnmfE.ipynb) |  [Zhou et al., 2018](https://pubmed.ncbi.nlm.nih.gov/29469809/) | 
-| Volpy for voltage data | [demo_pipeline_voltage_imaging.ipynb](./demos/notebooks/demo_pipeline_voltage_imaging.ipynb) |  [Cai et al., 2021](https://pubmed.ncbi.nlm.nih.gov/33852574/) | 
-| Volumetric (3D) CNMF | [demo_caiman_cnmf_3D.ipynb](./demos/notebooks/demo_caiman_cnmf_3D.ipynb) | [Mentioned in Giovannucci et al., 2019](https://pubmed.ncbi.nlm.nih.gov/30652683/) | 
-| CNMF for dendrites | [demo_dendritic.ipynb](./demos/notebooks/demo_dendritic.ipynb) |  [Pnevmatikakis et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26774160/) | 
-| Online CNMF (OnACID) | [demo_OnACID_mesoscope.ipynb](./demos/notebooks/demo_OnACID_mesoscope.ipynb) |[Giovannucci et al., 2017](https://proceedings.neurips.cc/paper_files/paper/2017/hash/4edaa105d5f53590338791951e38c3ad-Abstract.html) | 
-| Online volumetric CNMF | [demo_online_3D.ipynb](./demos/notebooks/demo_online_3D.ipynb) | Developed by Johannes Friedrich | 
-| Online CNMFE (OnACID-E) | [demo_realtime_cnmfE.ipynb](./demos/notebooks/demo_realtime_cnmfE.ipynb) |[Friedrich et al. 2020](https://pubmed.ncbi.nlm.nih.gov/33507937/) | 
-| Motion correction | [demo_motion_correction.ipynb](./demos/notebooks/demo_motion_correction.ipynb) | [Pnevmatikakis et al., 2017](https://pubmed.ncbi.nlm.nih.gov/28782629/) | 
-| Seed CNMF with external masks | [demo_seeded_CNMF.ipynb](./demos/notebooks/demo_seeded_CNMF.ipynb) |  [Mentioned in Giovannucci et al., 2019](https://pubmed.ncbi.nlm.nih.gov/30652683/) | 
-| Register cells across sessions | [demo_multisession_registration.ipynb](./demos/notebooks/demo_multisession_registration.ipynb) | [Pnevmatikakis et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26774160/) | 
-
-A comprehensive list of references, where you can find detailed discussion of the methods and their development, can be found [here](https://caiman.readthedocs.io/en/master/CaImAn_features_and_references.html#references). 
-
-# CLI demos
-Caiman also provides commandline demos, similar to the notebooks, demonstrating how to work with the codebase outside of Jupyter. They take their configuration primarily from json files (which you will want to modify to work with your data and its specifics) and should be reasonably easy to modify if they don't already do what you want them to do (in particular, saving things; a standard output format for Caiman is something intended for future releases). To run them, activate your environment, and find the demos in demos/general under your caiman data directory; you can run them like you would any other python application, or edit them with your code editor. Each demo comes with a json configuration file that you can customise. There is a README in the demos directory that covers some of this.
-
-# How to get help
-- [Online documentation](https://caiman.readthedocs.io/en/latest/) contains a lot of general information about Caiman, the parameters, how to interpret its outputs, and more.
-- [GitHub Discussions](https://github.com/flatironinstitute/Caiman/discussions) is our preferred venue for users to ask for help.
-- The [Gitter forum](https://app.gitter.im/#/room/#agiovann_Constrained_NMF:gitter.im) is our old forum: we sometimes will ask people to join us there when something can best be solved in real time (e.g., installation problems).
-- If you have found a bug, we recommend searching the [issues at github](https://github.com/flatironinstitute/Caiman/issues) and opening a new issue if you can't find the solution there. 
-- If there is a feature you would like to see implemented, feel free to come chat at the above forums or open an issue at Github.
-
-# How to contribute
- Caiman is an open-source project and improves because of contributions from users all over the world. If there is something about Caiman that you would like to work on, then please reach out. We are always looking for more contributors, so please come read the [contributors page](./CONTRIBUTING.md) for more details about how. 
-
-# Videos 
-There are multiple online videos by Andrea Giovannucci from past Caiman workshops/events that are an excellent start for newcomers.
-
-The following talk provides a good high-level introduction to Caiman:    
-https://www.youtube.com/watch?v=5APzPRbzUIA
-
-The following talks are more in depth:
-
-* https://www.youtube.com/watch?v=KjHrjhvhRy0
-* https://www.youtube.com/watch?v=rUwIqU6gVvw
-* https://www.youtube.com/watch?v=NZZ6_zo0YIM
-* https://www.youtube.com/watch?v=z6TlH28MLRo
-
-
-# Related repositories
-There are many repositories that use Caiman, or help make using Caiman easier.
-
-* [use\_cases repo](https://github.com/flatironinstitute/caiman_use_cases):  additional code (unmaintained) demonstrating how to reproduce results in some Caiman-related papers, and how to use/extend Caiman.
-* [jnormcorre](https://github.com/apasarkar/jnormcorre): [JAX](https://github.com/google/jax) implementation of NoRMCorre for motion correction using JAX acceleration
-* [funimag](https://github.com/paninski-lab/funimag): matrix decomposition for denoising and compression
-* [mesmerize-core](https://github.com/nel-lab/mesmerize-core): parameter optimization, data organization and visualizations with Caiman
-* [improv](https://github.com/project-improv/improv):  A platform for creating online analysis workflows that lets you use Caiman in real time (e.g., for all-optical experiments)
-* [pluvianus](https://github.com/katonage/pluvianus): A PyQT-based result browser for Caiman
-
-If you have questions about these related packages please reach out to their maintainers directly. If you would like your software to be in this list, please contact one of the developers or open an issue.
 
 # Citing Caiman and related papers
 If you publish a paper that relied on Caiman, we kindly ask that you [cite Giovannucci et al., 2019](https://elifesciences.org/articles/38173):
